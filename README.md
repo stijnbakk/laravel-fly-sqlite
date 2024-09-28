@@ -1,28 +1,34 @@
 # Laravel Fly deploy with sqlite database
 
-Instructions
-
-Setup fly
+## 1. Setup fly
 
 ```
 fly launch
 # follow the instructions
 ```
 
-Create a volume for the sqlite database
+## 2. Create a volume for the sqlite database
+
+Create volume on fly.io
 
 ```
 flyctl volumes create sqlite_data --region ams --size 1
 ```
 
-Add following:
+Update `fly.toml`
 
 ```toml
 # fly.toml
 [[mounts]]
   source = "sqlite_data"
   destination = "/var/www/storage/"
+# ...
+[env]
+  DB_CONNECTION = 'sqlite'
+  DB_DATABASE = '/var/www/html/storage/database/database.sqlite'
 ```
+
+Add initialisation script to create database on first deploy.
 
 ```sh
 # .fly/scripts/1_storage_init.sh
@@ -36,9 +42,15 @@ if [ ! -d "$FOLDER" ]; then
 fi
 ```
 
+## 3. Deploy
+
+Use fly cli to deploy
+
 ```bash
 fly deploy
 ```
+
+SSH into the machine to perform migrations and seeding
 
 ```bash
 flyctl ssh console
